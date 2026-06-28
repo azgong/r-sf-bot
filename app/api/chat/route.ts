@@ -17,6 +17,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { STAGE_PROMPTS, Stage } from "@/lib/coaching/stage-prompts";
 import { checkStageCompletion, nextStage } from "@/lib/coaching/stage-transitions";
+import { COMPETITION_KNOWLEDGE } from "@/lib/coaching/competition-knowledge";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -83,7 +84,16 @@ export async function POST(req: NextRequest) {
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 1024,
-    system: STAGE_PROMPTS[currentStage],
+    system: `${STAGE_PROMPTS[currentStage]}
+
+---
+
+REFERENCE KNOWLEDGE — the Canadian science fair competition landscape.
+Use this to give accurate, specific guidance about timelines, eligibility,
+and competition fit whenever relevant. Don't recite it unprompted; bring it
+up naturally when it matters to the student's actual situation.
+
+${COMPETITION_KNOWLEDGE}`,
     messages: claudeMessages,
   });
 
